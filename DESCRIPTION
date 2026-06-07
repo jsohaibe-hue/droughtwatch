@@ -1,0 +1,46 @@
+Package: droughtwatch
+Title: Agricultural Drought Monitoring and Early Warning System
+Version: 0.1.0
+Authors@R: 
+    person("Sohaib", "Jabrane", email = "sohaib.jabrane@example.com",
+           role = c("aut", "cre"))
+Description: A comprehensive R package for monitoring agricultural drought
+    and generating early warning alerts. It provides tools to calculate 
+    standard drought indices (SPI, SPEI, VHI), analyze NDVI vegetation data,
+    detect drought episodes, produce risk maps, and generate automated 
+    monthly bulletins and interactive dashboards.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+Depends:
+    R (>= 4.0.0)
+Imports:
+    dplyr (>= 1.0.0),
+    ggplot2 (>= 3.4.0),
+    lubridate (>= 1.9.0),
+    readr (>= 2.1.0),
+    readxl (>= 1.4.0),
+    tidyr (>= 1.3.0),
+    zoo (>= 1.8.0),
+    forecast (>= 8.21.0),
+    terra (>= 1.7.0),
+    sf (>= 1.0.0),
+    plotly (>= 4.10.0),
+    rmarkdown (>= 2.20.0),
+    knitr (>= 1.42.0),
+    shiny (>= 1.7.0),
+    shinydashboard (>= 0.7.2),
+    SPEI (>= 1.8.0),
+    scales (>= 1.2.0),
+    purrr (>= 1.0.0),
+    tibble (>= 3.2.0)
+Suggests:
+    testthat (>= 3.0.0),
+    covr,
+    spelling
+VignetteBuilder: knitr
+URL: https://github.com/SohaibJabrane/droughtwatch
+BugReports: https://github.com/SohaibJabrane/droughtwatch/issues
+Language: en-US
+LazyData: true
+Config/roxygen2/version: 8.0.0

@@ -1,0 +1,180 @@
+---
+title: "Introduction to droughtwatch"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to droughtwatch}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment  = "#>",
+  fig.width  = 7,
+  fig.height = 4,
+  warning = FALSE,
+  message = FALSE
+)
+library(droughtwatch)
+```
+
+## Overview
+
+**droughtwatch** is an R package for agricultural drought monitoring and early
+warning. It provides:
+
+- Standard drought indices (SPI, SPEI, VHI)
+- Drought episode detection and frequency analysis
+- NDVI-based vegetation monitoring
+- Automated alerts and monthly bulletins
+- An interactive Shiny dashboard
+
+---
+
+## 1. Load Example Data
+
+```{r load-data}
+data(morocco_climate)
+head(morocco_climate)
+```
+
+The `morocco_climate` dataset contains 24 years of simulated monthly climate
+data (precipitation, temperature, ETo) for a semi-arid Moroccan region.
+
+---
+
+## 2. Import Climate Data
+
+```{r import}
+climate <- import_climate_data(data = morocco_climate)
+str(climate)
+```
+
+`import_climate_data()` handles CSV and Excel files, date parsing, and
+missing value imputation. Here we pass a data frame directly.
+
+---
+
+## 3. Compute SPI
+
+The **Standardized Precipitation Index (SPI)** quantifies precipitation
+anomalies at different time scales.
+
+```{r spi}
+spi_result <- calc_spi(climate, scales = c(1, 3, 6))
+head(spi_result[, c("date", "precip", "spi_3", "class_3")])
+```
+
+```{r spi-plot}
+plot_drought_timeseries(spi_result, index_col = "spi_3", interactive = FALSE)
+```
+
+The orange, red, and dark-red dashed lines mark moderate (−1.0), severe (−1.5),
+and extreme (−2.0) drought thresholds.
+
+---
+
+## 4. Compute SPEI
+
+The **SPEI** adds evapotranspiration to the water balance, making it more
+sensitive to temperature-driven droughts.
+
+```{r spei}
+spei_result <- calc_spei(climate, scales = c(1, 3), lat = 32)
+head(spei_result[, c("date", "spei_3", "class_3")])
+```
+
+---
+
+## 5. Detect Drought Episodes
+
+```{r detect}
+drought_res <- detect_drought(spi_result, index_col = "spi_3", threshold = -1.0)
+drought_res$episodes
+```
+
+Each row describes one drought episode: start/end dates, duration in months,
+mean intensity, and alert level.
+
+---
+
+## 6. Frequency Analysis
+
+```{r frequency}
+stats <- analyze_frequency(drought_res, by = "year")
+stats$summary
+stats$severity_table
+```
+
+---
+
+## 7. Generate Alerts
+
+```{r alerts}
+alerts <- generate_alerts(drought_res, region = "Beni Mellal-Khenifra")
+# Show only active alerts
+alerts[alerts$alert_level != "NONE", ]
+```
+
+---
+
+## 8. Forecast
+
+```{r forecast}
+fc <- forecast_drought(spi_result, index_col = "spi_3",
+                        method = "moving_average", horizon = 3)
+fc
+```
+
+---
+
+## 9. NDVI & VHI (spatial analysis)
+
+```{r ndvi, eval = requireNamespace("terra", quietly = TRUE)}
+# Generate a synthetic NDVI stack
+ndvi <- download_ndvi("2020-01-01", "2020-06-30",
+                       region = c(-6, 31, -4, 33),
+                       source = "synthetic")
+
+# Compute VHI from NDVI
+vhi <- calc_vhi(ndvi)
+
+# Map June 2020
+plot_drought_map(vhi[[6]], type = "vhi", title = "VHI - June 2020")
+```
+
+---
+
+## 10. Generate Monthly Bulletin
+
+```{r bulletin, eval = FALSE}
+generate_monthly_bulletin(
+  index_data    = spi_result,
+  drought_result = drought_res,
+  alerts        = alerts,
+  region        = "Beni Mellal-Khenifra",
+  output_format = "html"
+)
+```
+
+---
+
+## 11. Interactive Dashboard
+
+```{r shiny, eval = FALSE}
+shiny_dashboard(data = morocco_climate, region = "Beni Mellal-Khenifra")
+```
+
+---
+
+## References
+
+- McKee, T.B., Doesken, N.J. & Kleist, J. (1993). The relationship of drought
+  frequency and duration to time scales. *Proceedings of the 8th Conference on
+  Applied Climatology*, 17–22 January, Anaheim, California.
+- Vicente-Serrano, S.M., Beguería, S. & López-Moreno, J.I. (2010). A
+  multiscalar drought index sensitive to global warming: the SPEI. *Journal of
+  Climate*, 23(7), 1696–1718.
+- Kogan, F.N. (1995). Application of vegetation index and brightness temperature
+  for drought detection. *Advances in Space Research*, 15(11), 91–100.
